@@ -10,7 +10,8 @@ import {
   SafeAreaView,
   Dimensions,
   Animated,
-  Platform
+  Platform,
+  useSafeAreaInsets
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { 
@@ -184,14 +185,15 @@ const OnboardingView = ({ onComplete }: { onComplete: (p: UserProfile) => void }
 };
 
 const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => {
+  const insets = useSafeAreaInsets();
   const [viewDay, setViewDay] = useState(dayNum);
   const workout = getWorkoutForDay(viewDay);
   const todayStr = formatDate(new Date());
   const todayLog = state.logs[todayStr] || {};
 
   return (
-    <ScrollView style={styles.viewContent} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+    <ScrollView style={[styles.viewContent, { paddingTop: insets.top }]} showsVerticalScrollIndicator={false}>
+      <View style={[styles.header, { marginTop: 0 }]}>
         <View style={styles.dayPicker}>
           <TouchableOpacity onPress={() => viewDay > 1 && setViewDay(viewDay - 1)}>
             <ChevronLeft color={COLORS.primary} size={28} />
@@ -272,6 +274,124 @@ const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => 
         </View>
       </Card>
       
+      <View style={{ height: 100 }} />
+    </ScrollView>
+  );
+};
+
+const ProgressionView = ({ state, dayNum }: any) => {
+  const insets = useSafeAreaInsets();
+  const logs = Object.values(state.logs || {}) as any[];
+  const completedWorkouts = logs.filter(l => l.workoutCompleted).length;
+  const avgWaterLiters = logs.length > 0
+    ? (logs.reduce((acc: number, l: any) => acc + (l.waterLiters || 0), 0) / logs.length).toFixed(1)
+    : '0';
+  const nutritionCompliance = logs.length > 0
+    ? Math.round((logs.filter((l: any) => l.caloriesHit && l.proteinHit).length / logs.length) * 100)
+    : 0;
+
+  return (
+    <ScrollView style={[styles.viewContent, { paddingTop: insets.top }]} showsVerticalScrollIndicator={false}>
+      <Text style={styles.sectionTitle}>PROGRESS TRACKING</Text>
+
+      <Card title="MILESTONES" icon={TrendingUp}>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Total Workouts</Text>
+          <Text style={styles.statValue}>{completedWorkouts}</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Current Day</Text>
+          <Text style={styles.statValue}>{dayNum} / 90</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Completion Rate</Text>
+          <Text style={styles.statValue}>{Math.round((dayNum / 90) * 100)}%</Text>
+        </View>
+      </Card>
+
+      <Card title="NUTRITION STATS" icon={Utensils}>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Diet Compliance</Text>
+          <Text style={styles.statValue}>{nutritionCompliance}%</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Avg Water Intake</Text>
+          <Text style={styles.statValue}>{avgWaterLiters}L</Text>
+        </View>
+      </Card>
+
+      <View style={{ height: 100 }} />
+    </ScrollView>
+  );
+};
+
+const CheckInView = ({ state, dayNum }: any) => {
+  const insets = useSafeAreaInsets();
+  const logs = Object.values(state.logs || {}) as any[];
+
+  return (
+    <ScrollView style={[styles.viewContent, { paddingTop: insets.top }]} showsVerticalScrollIndicator={false}>
+      <Text style={styles.sectionTitle}>BODY STATS</Text>
+
+      <Card title="CURRENT MEASUREMENTS" icon={Ruler}>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Height</Text>
+          <Text style={styles.statValue}>{state.user.heightCm} cm</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Weight</Text>
+          <Text style={styles.statValue}>{state.user.weightKg} kg</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Age</Text>
+          <Text style={styles.statValue}>{state.user.age}</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Level</Text>
+          <Text style={styles.statValue}>{state.user.experience}</Text>
+        </View>
+      </Card>
+
+      <Card title="DAILY TARGETS" icon={Flame}>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Target Calories</Text>
+          <Text style={styles.statValue}>{state.user.targetCalories}</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Protein Goal</Text>
+          <Text style={styles.statValue}>{state.user.targetProtein}g</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Carbs Goal</Text>
+          <Text style={styles.statValue}>{state.user.targetCarbs}g</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Fats Goal</Text>
+          <Text style={styles.statValue}>{state.user.targetFats}g</Text>
+        </View>
+      </Card>
+
+      <View style={{ height: 100 }} />
+    </ScrollView>
+  );
+};
+
+const PhotosView = ({ state }: any) => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <ScrollView style={[styles.viewContent, { paddingTop: insets.top }]} showsVerticalScrollIndicator={false}>
+      <Text style={styles.sectionTitle}>BODY PROGRESS</Text>
+
+      <Card title="PHOTO CHECKPOINTS" icon={Camera}>
+        <Text style={styles.emptyText}>No photos taken yet</Text>
+        <Text style={styles.emptySubText}>Take progress photos every 2 weeks to track your transformation</Text>
+        <TouchableOpacity style={[styles.primaryButton, { marginTop: 15 }]}>
+          <Camera color="#000" size={20} />
+          <Text style={styles.primaryButtonText}>TAKE PHOTO</Text>
+        </TouchableOpacity>
+      </Card>
+
       <View style={{ height: 100 }} />
     </ScrollView>
   );
@@ -425,29 +545,43 @@ export default function App() {
 
   if (!state.user) return <OnboardingView onComplete={handleOnboarding} />;
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.appContainer}>
+    <SafeAreaView style={styles.appContainer}>
       <StatusBar style="light" />
-      
+
       {view === 'dashboard' && (
-        <DashboardView 
-          state={state} 
-          dayNum={dayNum} 
+        <DashboardView
+          state={state}
+          dayNum={dayNum}
           onStartWorkout={(d: number) => { setActiveDay(d); setView('workout'); }}
           onUpdateDiet={handleUpdateDiet}
         />
       )}
 
+      {view === 'progression' && (
+        <ProgressionView state={state} dayNum={dayNum} />
+      )}
+
+      {view === 'checkin' && (
+        <CheckInView state={state} dayNum={dayNum} />
+      )}
+
+      {view === 'photos' && (
+        <PhotosView state={state} />
+      )}
+
       {view === 'workout' && (
-        <WorkoutView 
-          workout={getWorkoutForDay(activeDay)} 
-          todayLog={state.logs[todayStr]} 
-          onSave={handleWorkoutSave} 
+        <WorkoutView
+          workout={getWorkoutForDay(activeDay)}
+          todayLog={state.logs[todayStr]}
+          onSave={handleWorkoutSave}
         />
       )}
 
       {view !== 'workout' && (
-        <View style={styles.navBar}>
+        <View style={[styles.navBar, { paddingBottom: insets.bottom + 20 }]}>
           <TouchableOpacity style={styles.navItem} onPress={() => setView('dashboard')}>
             <CalendarIcon color={view === 'dashboard' ? COLORS.primary : COLORS.textDim} />
             <Text style={[styles.navText, view === 'dashboard' && { color: COLORS.primary }]}>TODAY</Text>
@@ -472,7 +606,7 @@ export default function App() {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -482,7 +616,7 @@ const styles = StyleSheet.create({
   viewContent: { flex: 1, padding: 20 },
   
   // Header
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25, marginTop: Platform.OS === 'ios' ? 40 : 20 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25, marginTop: 20 },
   dayPicker: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   dayTitle: { color: '#fff', fontSize: 28, fontWeight: '900' },
   dayLimit: { color: COLORS.textDim, fontSize: 16 },
@@ -536,7 +670,7 @@ const styles = StyleSheet.create({
   waterStepActive: { backgroundColor: '#3b82f6' },
 
   // Workout Module
-  workoutHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, borderBottomWidth: 1, borderBottomColor: COLORS.border, alignItems: 'center', marginTop: Platform.OS === 'ios' ? 40 : 0 },
+  workoutHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, borderBottomWidth: 1, borderBottomColor: COLORS.border, alignItems: 'center' },
   workoutHeaderTitle: { color: '#fff', fontWeight: '900', fontSize: 16 },
   exCard: { backgroundColor: COLORS.surface, marginBottom: 12, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
   exHeader: { padding: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -553,8 +687,16 @@ const styles = StyleSheet.create({
   workoutFooter: { padding: 15, backgroundColor: COLORS.surface, borderTopWidth: 1, borderTopColor: COLORS.border },
 
   // Navigation
-  navBar: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 85, backgroundColor: COLORS.surface, borderTopWidth: 1, borderTopColor: COLORS.border, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingBottom: 20 },
+  navBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: COLORS.surface, borderTopWidth: 1, borderTopColor: COLORS.border, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingTop: 12 },
   navItem: { alignItems: 'center', gap: 4 },
   navText: { color: COLORS.textDim, fontSize: 8, fontWeight: 'bold' },
   fab: { backgroundColor: COLORS.primary, width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', top: -25, borderWidth: 5, borderColor: COLORS.background },
+
+  // Additional Styles
+  sectionTitle: { color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 20 },
+  statRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  statLabel: { color: COLORS.textDim, fontSize: 14 },
+  statValue: { color: COLORS.primary, fontSize: 16, fontWeight: 'bold' },
+  emptyText: { color: COLORS.text, fontSize: 16, textAlign: 'center', marginVertical: 20 },
+  emptySubText: { color: COLORS.textDim, fontSize: 12, textAlign: 'center' },
 });
