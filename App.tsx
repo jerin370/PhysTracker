@@ -1,18 +1,18 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  TextInput, 
-  SafeAreaView, 
-  StatusBar, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  SafeAreaView,
   Dimensions,
   Animated,
   Platform
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { 
   Dumbbell, Utensils, Calendar as CalendarIcon, TrendingUp, Camera, 
   Droplets, Flame, Skull, ChevronRight, ChevronLeft, BarChart3, X, CheckCircle2,
@@ -427,7 +427,7 @@ export default function App() {
 
   return (
     <View style={styles.appContainer}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar style="light" />
       
       {view === 'dashboard' && (
         <DashboardView 
