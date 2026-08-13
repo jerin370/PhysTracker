@@ -1,8 +1,0 @@
-
-{
-  "name": "Anime Physique Tracker Mobile",
-  "description": "A 90-day aesthetic fitness tracker converted for Native Android/iOS.",
-  "requestFramePermissions": [
-    "camera"
-  ]
-}
