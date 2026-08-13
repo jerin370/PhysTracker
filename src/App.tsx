@@ -39,6 +39,15 @@ const OnboardingView = ({ onComplete }: { onComplete: (p: UserProfile) => void }
   const [formData, setFormData] = useState({
     name: '', height: '', weight: '', age: '', experience: ExperienceLevel.BEGINNER,
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateStep1 = () => formData.name.trim().length >= 2;
+  const validateStep2 = () => {
+    const h = parseFloat(formData.height);
+    const w = parseFloat(formData.weight);
+    const a = parseInt(formData.age);
+    return h >= 100 && h <= 250 && w >= 30 && w <= 300 && a >= 13 && a <= 100;
+  };
 
   const calculateMacros = () => {
     const w = parseFloat(formData.weight);
@@ -54,9 +63,17 @@ const OnboardingView = ({ onComplete }: { onComplete: (p: UserProfile) => void }
   };
 
   const handleSubmit = () => {
+    if (!validateStep2()) {
+      setErrors({
+        height: formData.height && parseFloat(formData.height) < 100 ? 'Enter 100-250 cm' : '',
+        weight: formData.weight && parseFloat(formData.weight) < 30 ? 'Enter 30-300 kg' : '',
+        age: formData.age && parseInt(formData.age) < 13 ? 'Must be 13+' : '',
+      });
+      return;
+    }
     const macros = calculateMacros();
     onComplete({
-      name: formData.name,
+      name: formData.name.trim(),
       heightCm: parseFloat(formData.height),
       weightKg: parseFloat(formData.weight),
       age: parseInt(formData.age),
@@ -80,13 +97,16 @@ const OnboardingView = ({ onComplete }: { onComplete: (p: UserProfile) => void }
       <div className="glass card" style={{ padding: 26 }}>
         {step === 1 ? (
           <div className="gap-12" style={{ display: 'flex', flexDirection: 'column' }}>
-            <label className="label">CHARACTER NAME</label>
+            <label className="label" htmlFor="ob-name">CHARACTER NAME</label>
             <input
+              id="ob-name"
               className="input"
               placeholder="Saitama"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              aria-invalid={!!errors.name}
             />
+            {errors.name && <span style={{ color: 'var(--accent)', fontSize: 12, marginTop: 4 }}>{errors.name}</span>}
             <div>
               <label className="label">TRAINING LEVEL</label>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -99,7 +119,7 @@ const OnboardingView = ({ onComplete }: { onComplete: (p: UserProfile) => void }
                       background: formData.experience === lvl ? 'var(--primary)' : 'rgba(0,0,0,0.4)',
                       border: `1px solid ${formData.experience === lvl ? 'var(--primary)' : 'var(--stroke)'}`,
                       color: formData.experience === lvl ? '#03111a' : 'var(--text-dim)',
-                      fontSize: 10, fontWeight: 800, fontFamily: 'var(--font)',
+                      fontSize: 12, fontWeight: 800, fontFamily: 'var(--font)',
                     }}
                   >
                     {lvl}
@@ -107,7 +127,7 @@ const OnboardingView = ({ onComplete }: { onComplete: (p: UserProfile) => void }
                 ))}
               </div>
             </div>
-            <button className="btn btn-primary" onClick={() => setStep(2)}>
+            <button className="btn btn-primary" onClick={() => setStep(2)} disabled={!validateStep1()}>
               NEXT <ChevronRight size={20} color="#03111a" />
             </button>
           </div>
@@ -115,38 +135,50 @@ const OnboardingView = ({ onComplete }: { onComplete: (p: UserProfile) => void }
           <div className="gap-12" style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', gap: 10 }}>
               <div className="flex-1">
-                <label className="label">HEIGHT (CM)</label>
+                <label className="label" htmlFor="ob-height">HEIGHT (CM)</label>
                 <input
+                  id="ob-height"
                   className="input"
                   type="number"
+                  inputMode="numeric"
                   value={formData.height}
                   onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                  aria-invalid={!!errors.height}
                 />
+                {errors.height && <span style={{ color: 'var(--accent)', fontSize: 12, marginTop: 4 }}>{errors.height}</span>}
               </div>
               <div className="flex-1">
-                <label className="label">WEIGHT (KG)</label>
+                <label className="label" htmlFor="ob-weight">WEIGHT (KG)</label>
                 <input
+                  id="ob-weight"
                   className="input"
                   type="number"
+                  inputMode="numeric"
                   value={formData.weight}
                   onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                  aria-invalid={!!errors.weight}
                 />
+                {errors.weight && <span style={{ color: 'var(--accent)', fontSize: 12, marginTop: 4 }}>{errors.weight}</span>}
               </div>
             </div>
             <div>
-              <label className="label">AGE</label>
+              <label className="label" htmlFor="ob-age">AGE</label>
               <input
+                id="ob-age"
                 className="input"
                 type="number"
+                inputMode="numeric"
                 value={formData.age}
                 onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                aria-invalid={!!errors.age}
               />
+              {errors.age && <span style={{ color: 'var(--accent)', fontSize: 12, marginTop: 4 }}>{errors.age}</span>}
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setStep(1)}>
                 BACK
               </button>
-              <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleSubmit}>
+              <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleSubmit} disabled={!validateStep2()}>
                 START MISSION
               </button>
             </div>
@@ -161,7 +193,10 @@ const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => 
   const [viewDay, setViewDay] = useState(dayNum);
   const workout = getWorkoutForDay(viewDay);
   const todayStr = formatDate(new Date());
-  const todayLog: DailyLog = state.logs[todayStr] || {} as DailyLog;
+  const todayLog: DailyLog = state.logs[todayStr] || {
+    date: todayStr, caloriesHit: false, proteinHit: false, waterLiters: 0,
+    junkFood: false, workoutCompleted: false, exercises: [],
+  };
   const quote = MOTIVATIONAL_QUOTES[dayNum % MOTIVATIONAL_QUOTES.length];
 
   return (
@@ -170,7 +205,9 @@ const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <button
             onClick={() => viewDay > 1 && setViewDay(viewDay - 1)}
-            style={{ background: 'none', border: 'none', cursor: viewDay > 1 ? 'pointer' : 'default', opacity: viewDay > 1 ? 1 : 0.3 }}
+            disabled={viewDay <= 1}
+            aria-label="Previous day"
+            style={{ background: 'none', border: 'none', cursor: viewDay > 1 ? 'pointer' : 'default', opacity: viewDay > 1 ? 1 : 0.3, minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <ChevronLeft color="var(--primary)" size={28} />
           </button>
@@ -178,13 +215,15 @@ const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => 
             <div style={{ fontSize: 28, fontWeight: 900 }}>
               DAY {viewDay} <span style={{ color: 'var(--text-dim)', fontSize: 16 }}>/ 90</span>
             </div>
-            <div style={{ color: 'var(--primary)', fontSize: 10, fontWeight: 800, letterSpacing: 1 }}>
+            <div style={{ color: 'var(--primary)', fontSize: 12, fontWeight: 800, letterSpacing: 1 }}>
               {viewDay === dayNum ? "TODAY'S MISSION" : 'VIEWING PLAN'}
             </div>
           </div>
           <button
             onClick={() => viewDay < 90 && setViewDay(viewDay + 1)}
-            style={{ background: 'none', border: 'none', cursor: viewDay < 90 ? 'pointer' : 'default', opacity: viewDay < 90 ? 1 : 0.3 }}
+            disabled={viewDay >= 90}
+            aria-label="Next day"
+            style={{ background: 'none', border: 'none', cursor: viewDay < 90 ? 'pointer' : 'default', opacity: viewDay < 90 ? 1 : 0.3, minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <ChevronRight color="var(--primary)" size={28} />
           </button>
@@ -200,7 +239,7 @@ const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => 
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <span className="label" style={{ margin: 0 }}>PROTOCOL PROGRESS</span>
-          <span style={{ color: 'var(--primary)', fontSize: 10, fontWeight: 800 }}>
+          <span style={{ color: 'var(--primary)', fontSize: 12, fontWeight: 800 }}>
             {Math.round((dayNum / 90) * 100)}%
           </span>
         </div>
@@ -215,7 +254,7 @@ const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => 
             <div key={e.id} style={{ color: 'var(--text-dim)', fontSize: 14 }}>• {e.name}</div>
           ))}
           {workout.exercises.length > 3 && (
-            <div style={{ color: 'var(--primary)', fontSize: 12 }}>+ {workout.exercises.length - 3} more</div>
+            <div style={{ color: 'var(--primary)', fontSize: 13 }}>+ {workout.exercises.length - 3} more</div>
           )}
           {workout.exercises.length === 0 && (
             <div style={{ color: 'var(--text-dim)', fontSize: 14 }}>Rest and recover today. Light walk, mobility, hydration.</div>
@@ -237,24 +276,30 @@ const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => 
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             onClick={() => onUpdateDiet('caloriesHit', !todayLog.caloriesHit)}
+            aria-label="Toggle calorie target hit"
+            aria-pressed={todayLog.caloriesHit}
             style={{
               flex: 1, padding: 16, borderRadius: 12, cursor: 'pointer', textAlign: 'center',
               background: todayLog.caloriesHit ? 'rgba(34,197,94,0.16)' : 'rgba(0,0,0,0.35)',
               border: `1px solid ${todayLog.caloriesHit ? 'var(--success)' : 'var(--stroke)'}`,
+              minHeight: 44,
             }}
           >
-            <div style={{ fontSize: 10, fontWeight: 800, color: todayLog.caloriesHit ? 'var(--success)' : 'var(--text-dim)' }}>CALORIES</div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: todayLog.caloriesHit ? 'var(--success)' : 'var(--text-dim)' }}>CALORIES</div>
             <div style={{ fontSize: 18, fontWeight: 900 }}>{state.user.targetCalories}</div>
           </button>
           <button
             onClick={() => onUpdateDiet('proteinHit', !todayLog.proteinHit)}
+            aria-label="Toggle protein target hit"
+            aria-pressed={todayLog.proteinHit}
             style={{
               flex: 1, padding: 16, borderRadius: 12, cursor: 'pointer', textAlign: 'center',
               background: todayLog.proteinHit ? 'rgba(34,197,94,0.16)' : 'rgba(0,0,0,0.35)',
               border: `1px solid ${todayLog.proteinHit ? 'var(--success)' : 'var(--stroke)'}`,
+              minHeight: 44,
             }}
           >
-            <div style={{ fontSize: 10, fontWeight: 800, color: todayLog.proteinHit ? 'var(--success)' : 'var(--text-dim)' }}>PROTEIN</div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: todayLog.proteinHit ? 'var(--success)' : 'var(--text-dim)' }}>PROTEIN</div>
             <div style={{ fontSize: 18, fontWeight: 900 }}>{state.user.targetProtein}G</div>
           </button>
         </div>
@@ -269,8 +314,10 @@ const DashboardView = ({ state, dayNum, onStartWorkout, onUpdateDiet }: any) => 
               <button
                 key={v}
                 onClick={() => onUpdateDiet('waterLiters', v)}
+                aria-label={`Set water intake to ${v} liters`}
+                aria-pressed={(todayLog.waterLiters || 0) >= v}
                 style={{
-                  flex: 1, height: 38, borderRadius: 8, cursor: 'pointer', border: 'none',
+                  flex: 1, height: 44, borderRadius: 8, cursor: 'pointer', border: 'none',
                   background: (todayLog.waterLiters || 0) >= v ? '#3b82f6' : 'rgba(255,255,255,0.08)',
                   transition: 'background .2s',
                 }}
@@ -364,7 +411,7 @@ const PhotosView = () => (
       <div style={{ color: 'var(--text-dim)', fontSize: 12, textAlign: 'center' }}>
         Take progress photos every 2 weeks to track your transformation
       </div>
-      <button className="btn btn-primary" style={{ marginTop: 16 }}>
+      <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => alert('Photo capture requires camera access. This feature will be available in a future update.')}>
         <Camera color="#03111a" size={20} /> TAKE PHOTO
       </button>
     </Card>
@@ -400,7 +447,7 @@ const WorkoutView = ({ workout, todayLog, onSave }: any) => {
     <div className="view fade-in" style={{ paddingBottom: 100 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
         <h2 style={{ fontSize: 18, fontWeight: 900 }}>{workout.name}</h2>
-        <button onClick={() => onSave(logs, false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button onClick={() => onSave(logs, false)} aria-label="Close workout without saving" style={{ background: 'none', border: 'none', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <X color="var(--text)" />
         </button>
       </div>
@@ -474,8 +521,10 @@ const WorkoutView = ({ workout, todayLog, onSave }: any) => {
                       />
                       <button
                         onClick={() => updateSet(ex.id, sIdx, 'completed', !set.completed)}
+                        aria-label={`Mark set ${sIdx + 1} as ${set.completed ? 'incomplete' : 'complete'}`}
+                        aria-pressed={set.completed}
                         style={{
-                          width: 42, height: 42, borderRadius: 8, cursor: 'pointer', display: 'flex',
+                          width: 44, height: 44, borderRadius: 8, cursor: 'pointer', display: 'flex',
                           alignItems: 'center', justifyContent: 'center', border: 'none',
                           background: set.completed ? 'var(--success)' : 'var(--surface-2)',
                         }}
@@ -588,6 +637,8 @@ export default function App() {
               key={n.key}
               className={`nav-item ${view === n.key ? 'active' : ''}`}
               onClick={() => setView(n.key)}
+              aria-label={n.label}
+              aria-current={view === n.key ? 'page' : undefined}
             >
               <n.icon size={22} />
               <span className="nav-text">{n.label}</span>
@@ -596,7 +647,7 @@ export default function App() {
           <button
             className="nav-fab"
             onClick={() => { setActiveDay(dayNum); setView('workout'); }}
-            aria-label="Start workout"
+            aria-label="Start today's workout"
           >
             <Dumbbell color="#03111a" size={28} />
           </button>
@@ -605,6 +656,8 @@ export default function App() {
               key={n.key}
               className={`nav-item ${view === n.key ? 'active' : ''}`}
               onClick={() => setView(n.key)}
+              aria-label={n.label}
+              aria-current={view === n.key ? 'page' : undefined}
             >
               <n.icon size={22} />
               <span className="nav-text">{n.label}</span>
@@ -615,3 +668,6 @@ export default function App() {
     </div>
   );
 }
+
+
+export default App

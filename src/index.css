@@ -12,8 +12,8 @@
   --success: #22c55e;
   --warning: #f59e0b;
   --text: #eef2f7;
-  --text-dim: #8b94a5;
-  --text-mute: #5b6475;
+  --text-dim: #9ba5b8;
+  --text-mute: #7a8499;
   --radius: 18px;
   --radius-sm: 12px;
   --blur: 18px;
@@ -116,7 +116,7 @@ body::after {
   margin-bottom: 16px;
 }
 .card-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 1.4px;
   color: var(--text);
@@ -147,7 +147,7 @@ body::after {
 }
 .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(6,182,212,0.45); }
 .btn-primary:active { transform: translateY(0); }
-.btn-primary:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--stroke); }
 
 .btn-ghost {
   background: var(--surface);
@@ -156,6 +156,18 @@ body::after {
   backdrop-filter: blur(10px);
 }
 .btn-ghost:hover { background: var(--surface-2); }
+
+/* Visible focus indicator for keyboard navigation (WCAG 2.4.7) */
+.btn:focus-visible,
+button:focus-visible,
+.nav-item:focus-visible,
+.nav-fab:focus-visible,
+.input:focus-visible,
+.field:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.btn:focus:not(:focus-visible) { outline: none; }
 
 /* ---- Inputs ---- */
 .input, .field {
@@ -176,11 +188,11 @@ body::after {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-soft);
 }
-.input::placeholder { color: var(--text-mute); }
+.input::placeholder { color: var(--text-mute); opacity: 0.7; }
 
 .label {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 1.2px;
   color: var(--text-dim);
@@ -222,6 +234,9 @@ body::after {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 4px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -233,7 +248,7 @@ body::after {
 .nav-item:hover { color: var(--text); }
 .nav-item.active:hover { color: var(--primary); }
 .nav-text {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .6px;
 }
@@ -278,4 +293,11 @@ body::after {
 
 @media (min-width: 600px) {
   .app { max-width: 520px; }
+}
+
+/* Reduced motion preference (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+  .fade-in { animation: none; }
+  * { transition-duration: 0.01ms !important; }
 }

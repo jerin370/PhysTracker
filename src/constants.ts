@@ -63,7 +63,8 @@ export const getDayNumber = (startDateStr: string): number => {
   const start = new Date(startDateStr).getTime();
   const now = new Date().getTime();
   const diff = now - start;
-  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+  const day = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+  return Math.max(1, Math.min(90, day));
 };
 
 export const getWorkoutForDay = (dayNumber: number): WorkoutRoutine => {
