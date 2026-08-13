@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Dumbbell, Utensils, Calendar as CalendarIcon, TrendingUp, Camera,
-  Flame, ChevronRight, ChevronLeft, BarChart3, X, CheckCircle2,
-  Check, ChevronUp, ChevronDown, Save, Circle, Ruler, Weight,
-} from 'lucide-react';
+import { Dumbbell, Utensils, Calendar as CalendarIcon, TrendingUp, Camera, Flame, ChevronRight, ChevronLeft, ChartBar as BarChart3, X, CircleCheck as CheckCircle2, Check, ChevronUp, ChevronDown, Save, Circle, Ruler, Weight } from 'lucide-react';
 import { loadState, saveState } from './services/storageService';
 import {
   WORKOUT_SPLIT, getDayNumber, getWorkoutForDay, formatDate, MOTIVATIONAL_QUOTES,
